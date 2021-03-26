@@ -1,23 +1,44 @@
-import logo from './logo.svg';
+import { BrowserRouter as Router, Switch,Route} from 'react-router-dom';
+import { useEffect, useState } from 'react';
 import './App.css';
+import AllRacers from './components/AllRacers';
+import RaceDetails from "./components/RaceDetails";
 
-function App() {
+const App = () => {
+
+  const [races, setRaces]=useState([]);
+  const [winner, setWinner]=useState('');
+
+  useEffect(() => {
+    fetch('https://ergast.com/api/f1/2020/results/1.json')
+    .then(response=>response.json())
+    .then(data => setRaces(data.MRData.RaceTable.Races))
+    .catch(error=>console.error(error));
+
+    fetch('https://ergast.com/api/f1/2020/driverStandings.json')
+    .then(response => response.json())
+    .then(data => {
+      const raceWinnerFirstName=data.MRData.StandingsTable.StandingsLists[0].DriverStandings[0].Driver.givenName;
+      const raceWinnerLastName=data.MRData.StandingsTable.StandingsLists[0].DriverStandings[0].Driver.familyName;
+      setWinner(`${raceWinnerFirstName} ${raceWinnerLastName}`);
+    })
+    .catch(error=>console.error(error))
+
+  }, [])
+
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+     <h1>F1 Racers of 2020</h1>
+    <Router>
+      <Switch>
+        <Route exact path="/">
+          <AllRacers races={races} winner={winner}/>
+        </Route>
+        <Route path="/RaceDetails">
+          <RaceDetails/>
+        </Route>
+      </Switch>
+    </Router>
     </div>
   );
 }
